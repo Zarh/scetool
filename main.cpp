@@ -8,6 +8,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <string.h>
 
 #ifdef _WIN32
 #include <io.h>
@@ -162,8 +163,8 @@ static void print_usage()
 	printf(" -h, --help                                   Print this help.\n");
 	printf(" -k, --print-keys                             List keys.\n");
 	printf(" -i, --print-infos      File-in               Print SCE file info.\n");
-	printf(" -d, --decrypt          File-in File-out      Decrypt/dump SCE file.\n");
-	printf(" -e, --encrypt          File-in File-out      Encrypt/create SCE file.\n");
+	printf(" -d, --decrypt          File-in [File-out]    Decrypt/dump SCE file.\n");
+	printf(" -e, --encrypt          File-in [File-out]    Encrypt/create SCE file.\n");
 	printf("OPTIONS                 Possible Values       Explanation\n");
 	printf(" -v, --verbose                                Enable verbose output.\n");
 	printf(" -r, --raw                                    Enable raw value output.\n");
@@ -199,6 +200,26 @@ static void print_usage()
 	exit(1);
 }
 
+char *GetExtension(char *path)
+{
+    int n = strlen(path);
+	
+    while(n > 1 && path[n] != '.' && path[n] != '/' && path[n] != '\\') n--;
+	
+    return &path[n];
+}
+
+void RemoveExtension(char *path)
+{
+    char *extension = GetExtension(path);
+	
+    int le = strlen(extension);
+    int lp = strlen(path);
+    
+    while(le>0) {path[lp-le]=0; le--;}
+}
+
+
 static void parse_args(int argc, char **argv)
 {
 	char c;
@@ -231,15 +252,65 @@ static void parse_args(int argc, char **argv)
 			_got_work = TRUE;
 			_decrypt_file = TRUE;
 			_file_in = optarg;
-			//Need more args.
-			goto get_args;
+			
+			if(argc - optind < 1)
+			{
+				char fileout[4096];
+				strcpy(fileout, (char *) _file_in);
+				char *ext = GetExtension(fileout);
+				if( !strcasecmp(ext, ".self") ) {
+					 RemoveExtension(fileout); 
+					strcat(fileout, ".elf");
+				} else
+				if( !strcasecmp(ext, ".sprx") ) {
+					RemoveExtension(fileout); 
+					strcat(fileout, ".prx");
+				} else
+				if( !strcasecmp(ext, ".bin") ) {
+					RemoveExtension(fileout); 
+					strcat(fileout, ".elf");
+				} else {
+					RemoveExtension(fileout); 
+					strcat(fileout, ".dec");
+				}			
+				_file_out = fileout;
+			} else {
+				_file_out = argv[optind];
+			}
+
+			return;
 			break;
 		case 'e':
 			_got_work = TRUE;
 			_encrypt_file = TRUE;
 			_file_in = optarg;
-			//Need more args.
-			goto get_args;
+			if(argc - optind < 1)
+			{
+				char fileout[4096];
+				strcpy(fileout, (char *) _file_in);
+				char *ext = GetExtension(fileout);
+				if( !strcasecmp(ext, ".elf") ) {
+					int l = strlen(fileout);
+					if( !strcasecmp(fileout+l-9, "eboot.elf")){
+						RemoveExtension(fileout); 
+						strcat(fileout, ".BIN");
+					} else {
+						RemoveExtension(fileout); 
+						strcat(fileout, ".self");
+					}
+				} else
+				if( !strcasecmp(ext, ".prx") ) {
+					RemoveExtension(fileout); 
+					strcat(fileout, ".sprx");
+				} else {
+					RemoveExtension(fileout); 
+					strcat(fileout, ".enc");
+				}			
+				_file_out = fileout;
+			} else {
+				_file_out = argv[optind];
+			}
+			return;
 			break;
 		case 'v':
 			_verbose = TRUE;
@@ -319,32 +390,6 @@ static void parse_args(int argc, char **argv)
 			print_usage();
 			break;
 		}
-	}
-
-	get_args:;
-
-	//Additional decrypt args.
-	if(_decrypt_file)
-	{
-		if(argc - optind < 1)
-		{
-			printf("[*] Error: Decrypt needs an output file!\n");
-			print_usage();
-		}
-
-		_file_out = argv[optind];
-	}
-
-	//Additional encrypt args.
-	if(_encrypt_file)
-	{
-		if(argc - optind < 1)
-		{
-			printf("[*] Error: Encrypt needs an input and output file!\n");
-			print_usage();
-		}
-
-		_file_out = argv[optind];
 	}
 }
 
