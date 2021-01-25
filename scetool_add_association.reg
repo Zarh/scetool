@@ -1,0 +1,8 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\*\shell\scetool]
+@="SCE Decrypt"
+"AppliesTo"="System.FileName:\"*.self\" OR System.FileName:\"*.sprx\" OR EBOOT.BIN"
+
+[HKEY_CLASSES_ROOT\*\shell\scetool\command]
+@="C:\\PSDK3v2\\ps3dev\\bin\\fake_scetool.exe -d \"%1\""

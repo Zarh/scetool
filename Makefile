@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-g -O0 -Wall
 OS_TARGET=scetool
-LDFLAGS=-lz
+LDFLAGS= -static -lz
 OBJS=aes.o aes_omac.o bn.o ec.o ecdsa.o frontend.o getopt.o keys.o list.o \
 	main.o mt19937.o np.o rvk.o sce.o self.o sha1.o tables.o util.o spp.o
 .SILENT:
