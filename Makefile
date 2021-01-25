@@ -38,7 +38,7 @@ clean:
 
 install:
 	@printf "\033[K\033[0;32mInstalling\033[1;32m\033[0;32m...\033[0m\n"
-	install -m755 $(OS_TARGET) $(BINDIR)
+	install -m755 $(OS_TARGET) $(PS3DEV)\bin
 
 DIR_ENTER = printf "\033[K\033[0;36mEntering directory \033[1;36m$$i\033[0;36m.\033[0m\n"; cd $$i || exit 1
 DIR_LEAVE = printf "\033[K\033[0;36mLeaving directory \033[1;36m$$i\033[0;36m.\033[0m\n"; cd .. || exit 1
